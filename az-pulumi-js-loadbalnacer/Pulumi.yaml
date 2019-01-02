@@ -1,0 +1,10 @@
+name: az-pulumi-server
+runtime: nodejs
+description: Provisioning resources of azure (Virtual network and VMS with Load Balancer)
+template:
+  description: A minimal Azure JavaScript Pulumi program
+  config:
+    azure:environment:
+      description: The Azure environment to use (`public`, `usgovernment`, `german`,
+        `china`)
+      default: public
