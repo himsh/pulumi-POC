@@ -1,0 +1,2 @@
+config:
+  az-pulumi-js-loadbalnacer:numberofVMs: "2"

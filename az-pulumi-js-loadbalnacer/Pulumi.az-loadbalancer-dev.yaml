@@ -1,2 +1,0 @@
-config:
-  az-pulumi-server:numberofVMs: "3"

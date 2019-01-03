@@ -32,18 +32,22 @@ class VirtualMachine extends pulumi.ComponentResource {
                         name: "webserveripcfg"+count,
                         subnetId: subnetId,
                         privateIpAddressAllocation: "Dynamic",
-                        publicIpAddressId: publicIP.id,
+                        publicIpAddressId: publicIP.id,  
                         loadBalancerBackendAddressPoolsIds:[backendPoolID],
                     //loadBalancerInboundNatRulesIds:[natRules[i]],
 
-                }],     
+                 }],    
+                   // networkInterfaceBackendAddressPoolAssociation:{
+                   //          ipConfigurationName: "webserveripcfg"+count,
+                   //          backendPoolID: backendPoolID,
+                   //      } 
             },
             {
                 parent: this
             }
             );
 
-            // Create VM
+            // Create virtual machine with network interface created.
             let vm = new azure.compute.VirtualMachine(vmName, {
                 resourceGroupName: rgName,
                 location: location,
@@ -72,16 +76,11 @@ class VirtualMachine extends pulumi.ComponentResource {
             }
             );
 
-            exports.publicIP = pulumi.all({ id: vm.id, name: publicIP.name, resourceGroupName: publicIP.resourceGroupName }).apply(ip =>
-                azure.network.getPublicIP({
-                    name: ip.name,
-                    resourceGroupName: ip.resourceGroupName,
-                }).then(ip => ip.ipAddress)
-            );
+            
         }
 
     }
 
  
-
+// Export module to be imported from other file.
  module.exports.VirtualMachine = VirtualMachine;

@@ -1,18 +1,20 @@
 "use strict";
 
+// Import the required SDK (Pulumi and Azure)
 const pulumi = require("@pulumi/pulumi");
 const azure = require("@pulumi/azure");
 
 let config = new pulumi.Config();
 let numberofVMs = config.require("numberofVMs");
 
-const resourceGroupComponent = require("./create-resource-group.js");
-const virtualMachineComponent = require("./create-vm.js");
-const loadBalancerComponent = require("./create-lb.js");
-const nsgComponent = require("./nsg.js");
+//import the reusable components 
+const resourceGroupComponent = require("./create-resource-group.js"); 
+const virtualMachineComponent = require("./create-vm.js"); 
+const loadBalancerComponent = require("./create-lb.js"); 
+const nsgComponent = require("./nsg.js"); 
 
 let publicIPs = [];
-var i = 0;
+let i;
 
 // Create an Azure Resource Group
 let resourceGroup = new resourceGroupComponent.ResourceGroup("pulumi-rg","EastUS");
@@ -21,12 +23,13 @@ let resourceGroup = new resourceGroupComponent.ResourceGroup("pulumi-rg","EastUS
 // Call Load Balancer componenet to create and use exposed backend pool ID.
 let azLB = new loadBalancerComponent.LB("pulumi-lb",resourceGroup.resourceGroupName,resourceGroup.location);
 let backendPoolID = azLB.backendPoolID;
-//onsole.log(backendPoolID);
 
-// Create Network security group for HTTP and RDP
+
+// Create Network security group using NetworkSecurityGroup compomenet for HTTP and RDP
 let nsg = new nsgComponent.NetworkSecurityGroup("pulumi-nsg",resourceGroup.resourceGroupName,resourceGroup.location);
 
 
+// Create a availability set for the VMs to be placed.
 let avset = new azure.compute.AvailabilitySet("myAVSet", {
     resourceGroupName:resourceGroup.resourceGroupName,
     location: resourceGroup.location,
@@ -51,16 +54,15 @@ let network = new azure.network.VirtualNetwork("pulumiVnet", {
 
 
 
-// Create subnet
+// Create subnet and associate the Network security group 
 let subnet = new azure.network.Subnet("pulumiSubnet", {
     resourceGroupName: resourceGroup.resourceGroupName,
     virtualNetworkName: network.name,
     addressPrefix: "10.0.2.0/24",
-    networkSecurityGroupId:nsg.nsgID,
-    // subnetNetworkSecurityGroupAssociation: {
-    // 	networkSecurityGroupId:nsg.id
-
-    // }
+    //networkSecurityGroupId:nsg.nsgID,
+    subnetNetworkSecurityGroupAssociation: {
+    	networkSecurityGroupId:nsg.id
+    }
 });
 
 // Create public IPs and respective VM.
@@ -72,12 +74,11 @@ for (i=0;i < numberofVMs; i++)
 		    publicIpAddressAllocation: "Dynamic",
 		});
 
-    //count = i;
     publicIPs[i] = publicIP.id;
-    let vm = new virtualMachineComponent.VirtualMachine("pulumi-vm"+i,resourceGroup.resourceGroupName, resourceGroup.location, 
-        publicIP,backendPoolID,subnet.id,avset.id,i);
 
-  
+    // Create virtual machine with public IP and Virtual Network
+    const vm = new virtualMachineComponent.VirtualMachine("pulumi-vm"+i,resourceGroup.resourceGroupName, resourceGroup.location, 
+        publicIP,backendPoolID,subnet.id,avset.id,i);
 
 }
 

@@ -1,4 +1,4 @@
-name: az-pulumi-server
+name: az-pulumi-js-loadbalnacer
 runtime: nodejs
 description: Provisioning resources of azure (Virtual network and VMS with Load Balancer)
 template:
