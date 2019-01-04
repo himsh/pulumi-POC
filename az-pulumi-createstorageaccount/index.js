@@ -2,9 +2,11 @@
 //import packages 
 const pulumi = require("@pulumi/pulumi");
 const azure = require("@pulumi/azure");
-const azurestorage = require("azure-storage")
+const azurestorage = require("azure-storage");
+const mime = require("mime");
 
 const prefix = pulumi.getStack().substring(0, 9);
+let siteDir= "wwwroot";
 
 const resourceGroup = require("./create-resource-group.js");
 
@@ -12,8 +14,6 @@ const resourceGroup = require("./create-resource-group.js");
 // Create an Azure Resource Group
 let azureResouceGroup = new resourceGroup.ResourceGroup("rgtest","EastUS");
 
-//console.log(azureResouceGroup.resourceGroupName);
-//exports.location = azureResouceGroup.resourceGroupName;
 
 // Create an Azure resource (Storage Account)
 const storageAccountName = `${prefix.toLowerCase().replace(/-/g, "")}sa`;
@@ -32,38 +32,29 @@ const storageContainer = new azure.storage.Container(`${prefix}-c`, {
 });
 
 
-// For each file in the directory, create an S3 object stored in `siteBucket`
-// for (let item of require("fs").readdirSync("wwwroot")) {
-//   let filePath = require("path").join(siteDir, item);
-//   let blob = new azure.storage.Blob()
-//   let object = new aws.s3.BucketObject(item, { 
-//     bucket: siteBucket,
-//     source: new pulumi.asset.FileAsset(filePath),     // use FileAsset to point to a file
-//     contentType: mime.getType(filePath) || undefined, // set the MIME type of the file
-//   });
-// }
+//For each file in the directory, create a blob
+for (let item of require("fs").readdirSync(siteDir)) {
+  let filePath = require("path").join(siteDir, item);
 
-
-// Create a blob to store a simple index.html
-const blob = new azure.storage.ZipBlob(`${prefix}-b`, {
+  let  blob = new azure.storage.Blob(item, {
     resourceGroupName: azureResouceGroup.resourceGroupName,
     storageAccountName: account.name,
     storageContainerName: storageContainer.name,
+    source: filePath,
     type: "block",
+    contentType:mime.getType(filePath) || undefined
+  });
 
-    content: new pulumi.asset.FileArchive("wwwroot")
-});
-
-const blobUrl = signedBlobReadUrl(blob, account, storageContainer);
+  const blobUrl = signedBlobReadUrl(blob, account, storageContainer);
+  console.log(String(blobUrl));
+  exports.blobUrl = blobUrl;
+}
 
 
 // Create sas URL  for the blob
 function signedBlobReadUrl(blob,account,container)
  {
     // Choose a fixed, far-future expiration date for signed blob URLs.
-    // The shared access signature (SAS) we generate for the Azure storage blob must remain valid for as long as the
-    // Function App is deployed, since new instances will download the code on startup. By using a fixed date, rather
-    // than (e.g.) "today plus ten years", the signing operation is idempotent.
     const signatureExpiration = new Date(2100, 1);
 
     return pulumi.all([
@@ -87,5 +78,6 @@ function signedBlobReadUrl(blob,account,container)
     });
 }
 
-//Export the URL for the Blob
-exports.blobUrl = blobUrl;
+//Export the connection string  for the storage account
+exports.connectionString = account.primaryConnectionString;
+
