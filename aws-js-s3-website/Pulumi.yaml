@@ -1,0 +1,9 @@
+name: aws-js-s3-website
+runtime: nodejs
+description: A minimal AWS JavaScript Pulumi program
+template:
+  description: A minimal AWS JavaScript Pulumi program
+  config:
+    aws:region:
+      description: The AWS region to deploy into
+      default: us-east-1

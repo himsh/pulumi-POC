@@ -72,7 +72,7 @@ class LB extends pulumi.ComponentResource {
            parent: this 
         });
 
-    	// Create a property for the Backend Pool ID that was created
+    	// Create a property for the Backend Pool ID to be used.
         this.backendPoolID = backendPool.id;
 
     }
