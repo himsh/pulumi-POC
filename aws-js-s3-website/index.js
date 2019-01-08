@@ -1,4 +1,6 @@
 "use strict";
+
+// import packages and declare variables 
 const pulumi = require("@pulumi/pulumi");
 const aws = require("@pulumi/aws");
 const mime = require("mime");
