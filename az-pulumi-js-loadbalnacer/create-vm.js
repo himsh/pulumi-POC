@@ -1,5 +1,8 @@
 "use strict";
 
+/*
+Create Azure VM and Network Interface for the respective VM 
+*/
 const azure = require("@pulumi/azure");
 const pulumi = require("@pulumi/pulumi");
 

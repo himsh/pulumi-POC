@@ -1,4 +1,6 @@
 "use strict";
+// Creates the network security group and the associated rules for the NSG. 
+// This NSG is attached to the network interface to allow the inbound traffic.
 
 const azure = require("@pulumi/azure");
 const pulumi = require("@pulumi/pulumi");
